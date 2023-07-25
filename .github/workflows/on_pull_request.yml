@@ -7,4 +7,4 @@ on:
 
 jobs:
   call-workflow:
-    uses: ./.github/workflows/call_test_cases.yml
+    uses: ./run_testcases.yml
