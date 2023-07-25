@@ -1,0 +1,11 @@
+coverage
+dist
+node_modules
+
+src
+tests
+fixup.sh
+
+jest.config.js
+tsconfig*
+webpack.config.js

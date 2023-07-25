@@ -1,0 +1,10 @@
+name: Run testcases on Pull Request
+
+on:
+  pull_request:
+    branches:    
+      - main
+
+jobs:
+  call-workflow:
+    uses: ./.github/workflows/call_test_cases.yml
