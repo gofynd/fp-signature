@@ -4,7 +4,7 @@
   "description": "Fynd platform's signature logic",
   "main": "./dist/cjs/index.js",
   "module": "./dist/mjs/index.js",
-  "browser": "./dist/web/gatekeeper.js",
+  "browser": "./dist/web/gatekeeper.min.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
     "build": "npm run clear && concurrently 'npm:build:cjs' 'npm:build:mjs' 'npm:build:types' 'npm:build:web' && sh fixup.sh",
@@ -12,6 +12,7 @@
     "build:mjs": "tsc -p tsconfig-mjs.json",
     "build:web": "webpack",
     "build:types": "tsc -p tsconfig-types.json",
+    "prepublishOnly": "npm run build",
     "clear": "rimraf ./dist",
     "test": "jest --coverage"
   },

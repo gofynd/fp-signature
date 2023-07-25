@@ -5,7 +5,7 @@ module.exports = {
   entry: "./src/index.ts", // Entry file of your TypeScript project
   output: {
     path: path.resolve("dist", "web"), // Output directory for the bundle
-    filename: "gatekeeper.js", // Name of the output bundle
+    filename: "gatekeeper.min.js", // Name of the output bundle
     library: 'GateKeeper'
   },
   resolve: {

@@ -31,7 +31,7 @@ import { sign } from "@gofynd/gatekeeper";
 ### For Browser
 
 ```html
-<script src="./node_modules/@gofynd/gatekeeper/dist/web/gatekeeper.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@gofynd/gatekeeper"></script>
 <script>
     // Gatekeeper library will be attached to the global window object
     Gatekeeper.sign();
@@ -56,13 +56,13 @@ type RequestParam = {
   body?: any;
   service?: any;
   region?: any;
-  signQuery?: boolean // It true, signature will be added as query in request
+  signQuery?: boolean;
   doNotEncodePath?: boolean;
   doNotModifyHeaders?: boolean; 
 };
 
 
-function sign(request : RequestParam, kCredentials: any) {}
+function sign(request : RequestParam, kCredentials: string) {}
 ```
 
 #### Signature Placement
