@@ -12,8 +12,6 @@ export type RequestParam = {
   port?: number;
   path?: string;
   body?: any;
-  service?: any;
-  region?: any;
   signQuery?: boolean
   doNotEncodePath?: boolean;
   doNotModifyHeaders?: boolean; 
@@ -22,24 +20,22 @@ export type RequestParam = {
 type ParsedPath = {
   path: string;
   query: querystring.ParsedUrlQuery;
-  // query: querystring.ParsedQuery;
 }
 
-// request: { path | body, [host], [method], [headers], [service], [region] }
 export default class RequestSigner {
   
-  kCredentials: string;
+  secret: string;
   request: RequestParam;
   parsedPath: ParsedPath;
   datetime: string;
 
-  constructor(request: RequestParam, kCredentials: string) {
+  constructor(request: RequestParam, secret: string) {
 
-    if(!kCredentials){
-      throw new Error("Signature secrete cannot be null, pass kCredentials parameter in constructor.");
+    if(!secret){
+      throw new Error("Signature secrete cannot be null, pass secret parameter in constructor.");
     }
 
-    this.kCredentials = kCredentials;
+    this.secret = secret;
 
     let headers = (request.headers = request.headers || {});
     this.request = request;
@@ -119,8 +115,7 @@ export default class RequestSigner {
 
   signature() {
     let strTosign = this.stringToSign();
-    // console.log(strTosign);
-    return `v1.1:${hmac(this.kCredentials, strTosign, "hex")}`;
+    return `v1.1:${hmac(this.secret, strTosign, "hex")}`;
   }
 
   stringToSign() {
@@ -259,7 +254,6 @@ export default class RequestSigner {
     let path: string = this.request.path || "/";
     let queryIx: number = path.indexOf("?");
     let query : querystring.ParsedUrlQuery = {};
-    // let query : querystring.ParsedQuery = {};
 
     if (queryIx >= 0) {
       query = querystring.parse(path.slice(queryIx + 1));

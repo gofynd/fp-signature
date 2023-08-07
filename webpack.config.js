@@ -5,8 +5,8 @@ module.exports = {
   entry: "./src/index.ts", // Entry file of your TypeScript project
   output: {
     path: path.resolve("dist", "web"), // Output directory for the bundle
-    filename: "gatekeeper.min.js", // Name of the output bundle
-    library: 'GateKeeper'
+    filename: "fp-signature.min.js", // Name of the output bundle
+    library: 'FPSignature'
   },
   resolve: {
     extensions: [".ts", ".js"], // Extensions to resolve during module resolution
