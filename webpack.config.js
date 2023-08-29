@@ -6,7 +6,11 @@ module.exports = {
   output: {
     path: path.resolve("dist", "web"), // Output directory for the bundle
     filename: "fp-signature.min.js", // Name of the output bundle
-    library: 'FPSignature'
+    library: {
+      type: "umd",
+      name: 'FPSignature',
+      umdNamedDefine: true
+    }
   },
   resolve: {
     extensions: [".ts", ".js"], // Extensions to resolve during module resolution
