@@ -1,14 +1,15 @@
-import RequestSigner, { RequestParam } from '../../src/RequestSigner';
+import { RequestParam } from "../../src/types";
+import {sign} from '../../src';
 
 
-describe('Integration Test - sign method with mocked parameters', () => {
+describe('Integration Test - sign method with mocked parameters - new ', () => {
   let request: RequestParam;
   let secret: string;
-  const mockDateTime = '2023-07-17T12:34:56.789Z';
+  const mockDateTime = '2023-10-26T05:39:00.199Z';
 
   beforeEach(() => {
 
-    secret = 'dummyCredentials';
+    secret = '1234567';
 
     // Mock the Date object
     jest.spyOn(global, 'Date').mockImplementationOnce(() => new Date(mockDateTime));
@@ -26,49 +27,47 @@ describe('Integration Test - sign method with mocked parameters', () => {
 
   });
 
-  it('should call sign method with mocked parameters and mocked Date', () => {
+  it('should call sign method with mocked parameters and mocked Date - for headers', () => {
 
     request = {
-      method: "GET",
-      port: 1234,
-      path: "/service/application/theme/v1.0/applied-theme",
-      signQuery: true,
-      headers: {
-        host: 'api.fynd.com',
-        Authorization: "Bearer NjRhZjk2Zjc4MzI0MWRlMmFjZWQyYjVjOlM4aFFqWkxZVA==",
+      "method": "GET",
+      "host": "api.fyndx5.de",
+      "path": "/service/application/configuration/v1.0/application",
+      "headers": {
+        "Authorization": "Bearer NjQ2NGIxMTY5YThjNmI3ZDUwMDVkMTJlOnVfeXhsWXBaQg==",
+        "x-location-detail": {"pincode":"385001","country":"India","city":"Ahmedabad","location":{"longitude":"72.585022","latitude":"23.033863"}},
         "x-currency-code": "INR",
-        "x-fp-sdk-version": "1.1.2",
-      },
+        "x-fp-sdk-version": "1.3.4"
+      }
     };
 
     // Call the sign method
-    const result = new RequestSigner(request, secret).sign();
+    const result = sign(request);
 
-    expect(result.path?.includes("x-fp-signature=v1.1%3A267a7bc88a9987670cedd16ca07bdec78da5471df94929d7dc18219a17c4ac47")).toBeTruthy();
+    expect(result['x-fp-signature']).toEqual('v1.1:e922d50be2a309cc7a3580a1f60cf19d6f82f2a4c5d1a52441a082e7500a2a61')
+    expect(result['x-fp-date']).toEqual('20231026T053900Z')
   });
 
-  it('should call sign method with mocked parameters and mocked Date', () => {
+  it('should call sign method with mocked parameters and mocked Date - for query', () => {
 
     request = {
-      method: "POST",
-      host: 'api.fynd.com',
-      path: "/service/application/cart/v1.0/coupon",
-      body: "{\"coupon_code\":\"dummyCouponCode\"}",
-      headers: {
-        Authorization: "Bearer NjRhZjk2Zjc4MzI0MWRlMmFjZWQyYjVjOlM4aFFqWkxZVA==",
+      "method": "GET",
+      "host": "api.fyndx5.de",
+      "path": "/service/application/configuration/v1.0/application",
+      "headers": {
+        "Authorization": "Bearer NjQ2NGIxMTY5YThjNmI3ZDUwMDVkMTJlOnVfeXhsWXBaQg==",
+        "x-location-detail": {"pincode":"385001","country":"India","city":"Ahmedabad","location":{"longitude":"72.585022","latitude":"23.033863"}},
         "x-currency-code": "INR",
-        "x-fp-sdk-version": "1.1.2",
-        "Content-Type": "application/json",
-      },
+        "x-fp-sdk-version": "1.3.4"
+      }
     };
 
     // Call the sign method
-    const result = new RequestSigner(request, secret).sign();
+    const result = sign(request, {
+      forQuery: true
+    });
 
-    expect(result.headers['x-fp-signature']).toEqual('v1.1:1c4c6979570f2f2a733ee4fd8b8905123448c78a5b70480d87a2e7ac8d66f675')
-    expect(result.headers['x-fp-date']).toEqual("20230717T123456Z")
+    expect(result['x-fp-signature']).toEqual('v1.1:38f6892758a50510d9cacbf70b5da73fa09d178104034544fc5587a113c80f9c')
+    expect(result['x-fp-date']).toEqual('20231026T053900Z')
   });
-
-
-
-});
+})

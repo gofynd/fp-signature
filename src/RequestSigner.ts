@@ -1,63 +1,49 @@
 import querystring from "querystring";
 
-type Dictionary = Record<string, any>
+import type { RequestParam, ParsedPath, Dictionary } from "./types";
 import { HEADERS_TO_IGNORE, HEADERS_TO_INCLUDE } from "./constants"
 import { hmac, hash, encodeRfc3986, encodeRfc3986Full } from "./utils";
 
-export type RequestParam = {
-  headers?: any;
-  method: string;
-  host?: string;
-  hostname?: string;
-  port?: number;
-  path?: string;
-  body?: any;
-  signQuery?: boolean
-  doNotEncodePath?: boolean;
-  doNotModifyHeaders?: boolean; 
-};
-
-type ParsedPath = {
-  path: string;
-  query: querystring.ParsedUrlQuery;
+type RequestParamInternal = RequestParam & {
+    signQuery?: boolean;
 }
 
-export default class RequestSigner {
-  
+export default class RequestSigner { 
+
   secret: string;
-  request: RequestParam;
+  request: RequestParamInternal;
   parsedPath: ParsedPath;
   datetime: string;
 
-  constructor(request: RequestParam, secret: string) {
+  constructor(request: RequestParam, secret?: string) {
 
     if(!secret){
       throw new Error("Signature secrete cannot be null, pass secret parameter in constructor.");
     }
 
     this.secret = secret;
-
-    let headers = (request.headers = request.headers || {});
     this.request = request;
 
-    if (!request.method && request.body) {
-      request.method = "POST";
+    let headers = (this.request.headers = this.request.headers || {});
+
+    if (!this.request.method && this.request.body) {
+      this.request.method = "POST";
     }
 
     if (!headers.Host && !headers.host) {
-      headers.Host = request.hostname || request.host;
+      headers.Host = this.request.hostname || this.request.host;
 
       // If a port is specified explicitly, use it as is
-      if (request.port) {
-        headers.Host += ":" + request.port;
+      if (this.request.port) {
+        headers.Host += ":" + this.request.port;
       }
     }
-    if (!request.hostname && !request.host) {
-      request.hostname = headers.Host || headers.host;
+    if (!this.request.hostname && !this.request.host) {
+      this.request.hostname = headers.Host || headers.host;
     }
   }
 
-  prepareRequest() {
+  private prepareRequest() {
     this.parsePath();
 
     let request = this.request;
@@ -87,19 +73,32 @@ export default class RequestSigner {
   }
 
   sign() {
+    this.request.signQuery = false;
     if (!this.parsedPath) {
       this.prepareRequest();
     }
-    if (this.request.signQuery) {
-      this.parsedPath.query["x-fp-signature"] = this.signature();
-    } else {
-      this.request.headers["x-fp-signature"] = this.signature();
+    this.request.headers["x-fp-signature"] = this.signature();
+    return {
+      'x-fp-signature': this.request.headers['x-fp-signature'],
+      'x-fp-date': this.request.headers["x-fp-date"]
     }
-    this.request.path = this.formatPath();
-    return this.request;
   }
 
-  getDateTime() {
+  signQuery(){
+    this.request.signQuery = true;
+    if (!this.parsedPath) {
+      this.prepareRequest();
+    }
+    this.parsedPath.query["x-fp-signature"] = this.signature();
+    this.request.path = this.formatPath();
+    return {
+      'x-fp-signature': this.parsedPath.query['x-fp-signature'],
+      'x-fp-date': this.parsedPath.query["x-fp-date"]
+    }
+  }
+  
+
+  private getDateTime() {
     if (!this.datetime) {
       let headers = this.request.headers;
       let date = new Date(headers.Date || headers.date || new Date());
@@ -109,20 +108,16 @@ export default class RequestSigner {
     return this.datetime;
   }
 
-  getDate() {
-    return this.getDateTime().substr(0, 8);
-  }
-
-  signature() {
+  private signature() {
     let strTosign = this.stringToSign();
     return `v1.1:${hmac(this.secret, strTosign, "hex")}`;
   }
 
-  stringToSign() {
+  private stringToSign() {
     return [this.getDateTime(), hash(this.canonicalString(), "hex")].join("\n");
   }
 
-  canonicalString() {
+  private canonicalString() {
     if (!this.parsedPath) {
       this.prepareRequest();
     }
@@ -199,7 +194,7 @@ export default class RequestSigner {
     return canonicalReq;
   }
 
-  canonicalHeaders() {
+  private canonicalHeaders() {
     let headers = this.request.headers;
 
     function trimAll(header: any) {
@@ -228,7 +223,7 @@ export default class RequestSigner {
       .join("\n");
   }
 
-  signedHeaders() {
+  private signedHeaders() {
     return Object.keys(this.request.headers)
       .map(function (key) {
         return key.toLowerCase();
@@ -250,7 +245,7 @@ export default class RequestSigner {
       .join(";");
   }
 
-  parsePath() {
+  private parsePath() {
     let path: string = this.request.path || "/";
     let queryIx: number = path.indexOf("?");
     let query : querystring.ParsedUrlQuery = {};
@@ -272,7 +267,7 @@ export default class RequestSigner {
     };
   }
 
-  formatPath() {
+  private formatPath() {
     let path = this.parsedPath.path;
     let query = this.parsedPath.query;
 
