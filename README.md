@@ -42,7 +42,7 @@ import { sign } from "@gofynd/fp-signature";
 
 ### `sign` function
 
-The `sign` function is used to add a signature to a request. It takes two parameters: `request` and `secret`.
+The `sign` function is used to add a signature to a request. It takes two parameters: `request` and `options`.
 
 
 ```typescript
@@ -54,21 +54,24 @@ type RequestParam = {
   port?: number;
   path?: string;
   body?: any;
-  signQuery?: boolean;
   doNotEncodePath?: boolean;
   doNotModifyHeaders?: boolean; 
 };
 
+type SigningOptions = {
+    secret?: string;
+    forQuery?: boolean;
+}
 
-function sign(request : RequestParam, secret: string) {}
+function sign(request : RequestParam, options: SigningOptions) {}
 ```
 
 #### Signature Placement
 
-The placement of the signature (`x-fp-signature`) in the request is determined by the `signQuery` property:
+The placement of the signature (`x-fp-signature`) in the request is determined by the `options.forQuery` property:
 
-- If `request.signQuery` is `true`, the `x-fp-signature` will be added as a query parameter.
-- If `request.signQuery` is `false`, the `x-fp-signature` will be added as a header.
+- If `options.forQuery` is `true`, the `x-fp-signature` will be generated to use in query parameter.
+- If `options.forQuery` is `false`, the `x-fp-signature` will be generated to use in headers.
 
 ## Example
 
@@ -80,7 +83,7 @@ The placement of the signature (`x-fp-signature`) in the request is determined b
 import {sign} from "@gofynd/fp-signature";
 
 
-const stringToSign = {
+const requestToSign = {
     method: "GET",
     host: "api.fynd.com",
     path: "/service/application/configuration/v1.0/application",
@@ -90,5 +93,5 @@ const stringToSign = {
     },
 };
 
-const signature = sign(stringToSign, "21353")
+const signature = sign(requestToSign)
 ```
