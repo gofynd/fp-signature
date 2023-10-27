@@ -31,15 +31,15 @@ export default class RequestSigner {
     }
 
     if (!headers.Host && !headers.host) {
-      headers.Host = this.request.hostname || this.request.host;
+      headers.Host = this.request.host;
 
       // If a port is specified explicitly, use it as is
       if (this.request.port) {
         headers.Host += ":" + this.request.port;
       }
     }
-    if (!this.request.hostname && !this.request.host) {
-      this.request.hostname = headers.Host || headers.host;
+    if (!this.request.host) {
+      this.request.host = headers.Host || headers.host;
     }
   }
 

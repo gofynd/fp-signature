@@ -1,6 +1,12 @@
 import { sign } from "../src";
+const combineURLs = require("axios/lib/helpers/combineURLs");
+const isAbsoluteURL = require("axios/lib/helpers/isAbsoluteURL");
+const querystring = require("query-string");
 
-// When using as interceptor in axios
+/**
+ * Example: When using as interceptor in axios
+ * @param {import("axios").AxiosRequestConfig} config 
+ */
 function signatureExample(config) {
     if (!config.url) {
         throw new Error(
@@ -27,8 +33,18 @@ function signatureExample(config) {
 
     let transformedData;
     if (method != "get") {
-        const transformRequest = getTransformer(config);
-        transformedData = transformRequest(data, headers);
+        let { transformRequest } = config;
+        if (transformRequest) {
+            if (transformRequest.length) {
+              transformRequest = transformRequest[0];
+            }
+            transformedData = transformRequest(data, headers);
+        }
+        else {
+            throw new Error(
+                "Could not get default transformRequest function from Axios defaults"
+              );
+        }
     }
 
     // Remove all the default Axios headers

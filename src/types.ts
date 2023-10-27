@@ -1,12 +1,11 @@
 import type querystring from "querystring";
 
 export type RequestParam = {
-    headers?: any;
     method: string;
-    host?: string;
-    hostname?: string;
+    host?: string;    
     port?: number;
     path?: string;
+    headers?: any;
     body?: any;
     doNotEncodePath?: boolean;
     doNotModifyHeaders?: boolean; 
