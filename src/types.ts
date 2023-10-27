@@ -20,5 +20,10 @@ export type Dictionary = Record<string, any>
 
 export type SigningOptions = {
     secret?: string;
-    forQuery?: boolean;
+    signQuery?: boolean;
+}
+
+export type Signature = {
+    "x-fp-signature": string;
+    "x-fp-date": string;
 }

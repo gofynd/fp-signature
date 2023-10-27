@@ -5,7 +5,7 @@ package
 
 src
 tests
-fixup.sh
+examples
 
 jest.config.js
 tsconfig*

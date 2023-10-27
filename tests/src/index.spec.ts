@@ -71,7 +71,7 @@ describe("Integration Test - sign method with mocked parameters - new ", () => {
         };
 
         const result = sign(request, {
-            forQuery: true,
+            signQuery: true,
         });
 
         expect(result["x-fp-signature"]).toEqual(
@@ -101,9 +101,9 @@ describe("Integration Test - sign method with mocked parameters - new ", () => {
 
         // Call the sign method
         const result = sign(request, {
-            forQuery: true,
+            signQuery: true,
         });
-
+        
         expect(result["x-fp-signature"]).toEqual(
             "v1.1:8611d45b8aa82bd99188f2a3d77f053fda42a84427d8918cd9b316e04761b22d"
         );

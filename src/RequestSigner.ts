@@ -1,6 +1,6 @@
 import querystring from "querystring";
 
-import type { RequestParam, ParsedPath, Dictionary } from "./types";
+import type { RequestParam, ParsedPath, Dictionary, Signature } from "./types";
 import { HEADERS_TO_IGNORE, HEADERS_TO_INCLUDE } from "./constants"
 import { hmac, hash, encodeRfc3986, encodeRfc3986Full } from "./utils";
 
@@ -72,7 +72,7 @@ export default class RequestSigner {
     }
   }
 
-  sign() {
+  sign() : Signature{
     this.request.signQuery = false;
     if (!this.parsedPath) {
       this.prepareRequest();
@@ -84,7 +84,7 @@ export default class RequestSigner {
     }
   }
 
-  signQuery(){
+  signQuery() : Signature{
     this.request.signQuery = true;
     if (!this.parsedPath) {
       this.prepareRequest();
@@ -93,7 +93,7 @@ export default class RequestSigner {
     this.request.path = this.formatPath();
     return {
       'x-fp-signature': this.parsedPath.query['x-fp-signature'],
-      'x-fp-date': this.parsedPath.query["x-fp-date"]
+      'x-fp-date': this.parsedPath.query["x-fp-date"] as string
     }
   }
   

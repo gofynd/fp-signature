@@ -42,8 +42,11 @@ import { sign } from "@gofynd/fp-signature";
 
 ### `sign` function
 
-The `sign` function is used to generate a signature. It takes two parameters: `request` and `options` and returns `x-fp-date` and `x-fp-signature`.
+The `sign` function is used to generate a signature. It takes two parameters: `request` and `options`.
 
+It will return `Signature` object with `x-fp-date` and `x-fp-signature`.
+
+Include the generated `x-fp-date` and `x-fp-signature` in the request headers or query parameters to sign the request.
 
 ```typescript
 type RequestParam = {
@@ -59,10 +62,15 @@ type RequestParam = {
 
 type SigningOptions = {
     secret?: string;
-    forQuery?: boolean;
+    signQuery?: boolean;
 }
 
-function sign(request : RequestParam, options: SigningOptions) {}
+type Signature = {
+    "x-fp-signature": string;
+    "x-fp-date": string;
+}
+
+function sign(request : RequestParam, options: SigningOptions) : Signature {}
 ```
 
 ### `RequestParam` Object
@@ -93,18 +101,9 @@ The `RequestParam` object is used to configure the details of the HTTP request t
 const requestToSign = {
     method: "GET",
     host: "api.fynd.com",
-    path: "/service/application/configuration/v1.0/application",
+    path: "/service/application/configuration/v1.0/application?queryParam=value",
     headers: {
-      Authorization: "Bearer <Auth token>",
-      "x-location-detail": {
-        "pincode":"385001",
-        "country":"India",
-        "city":"Ahmedabad",
-        "location":{
-          "longitude":"72.585022",
-          "latitude":"23.033863"
-        }
-      },
+      Authorization: "Bearer <authorizationToken>",
       "x-currency-code": "INR"
     },
 };
@@ -113,13 +112,15 @@ const requestToSign = {
 
 ### Signature Placement
 
-The placement of the signature (`x-fp-signature`) in the request is determined by the `options.forQuery` property:
+The placement of the signature (`x-fp-signature`) in the request is determined by the `options.signQuery` property:
 
-- If `options.forQuery` is `true`, the `x-fp-signature` will be generated to use in query parameter.
-- If `options.forQuery` is `false`, the `x-fp-signature` will be generated to use in headers.
+- If `options.signQuery` is `true`, the `x-fp-signature` will be generated to use in query parameter.
+- If `options.signQuery` is `false`, the `x-fp-signature` will be generated to use in headers.
 
 
 ## Example
+
+### Signature to add in header
 
 ```javascript
 // For Common JS
@@ -128,16 +129,61 @@ The placement of the signature (`x-fp-signature`) in the request is determined b
 // For ES Module
 import {sign} from "@gofynd/fp-signature";
 
-
 const requestToSign = {
-    method: "GET",
-    host: "api.fynd.com",
-    path: "/service/application/configuration/v1.0/application",
-    headers: {
-      Authorization: "Bearer NjQ2NGIxMTY5YThjNmI3ZDUwMDVkMTJlOnVfeXhsWXBaQg==",
-      "x-currency-code": "INR"
-    },
+  method: "GET",
+  host: "api.fynd.com",
+  path: "/service/application/configuration/v1.0/application",
+  headers: {
+    Authorization: "Bearer <authorizationToken>",
+    "x-currency-code": "INR"
+  },
 };
 
-const signature = sign(requestToSign)
+const signature = sign(requestToSign);
+
+const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
+  headers: {
+    Authorization: "Bearer <authorizationToken>",
+    "x-currency-code": "INR",
+    "x-fp-signature": signature["x-fp-signature"],
+    "x-fp-date": signature["x-fp-date"]
+  }
+});
+
+```
+
+### Signature to add in query
+
+```javascript
+// For Common JS
+// const {sign} = require("@gofynd/fp-signature")
+
+// For ES Module
+import {sign} from "@gofynd/fp-signature";
+
+const requestToSign = {
+  method: "GET",
+  host: "api.fynd.com",
+  path: "/service/application/configuration/v1.0/application",
+  headers: {
+    Authorization: "Bearer <authorizationToken>",
+    "x-currency-code": "INR"
+  },
+};
+
+const signature = sign(requestToSign, {
+  signQuery: true
+});
+
+const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
+  params: {
+    "x-fp-signature": signature["x-fp-signature"],
+    "x-fp-date": signature["x-fp-date"]
+  },
+  headers: {
+    Authorization: "Bearer <authorizationToken>",
+    "x-currency-code": "INR"
+  }
+});
+
 ```

@@ -1,4 +1,4 @@
-import { sign } from "../src";
+const { sign } = require("@gofynd/fp-signature")
 const combineURLs = require("axios/lib/helpers/combineURLs");
 const isAbsoluteURL = require("axios/lib/helpers/isAbsoluteURL");
 const querystring = require("query-string");
