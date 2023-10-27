@@ -25,6 +25,14 @@
     "name": "Fynd Developer",
     "email" : "dev@fynd.com"
   },
+  "keywords": [
+    "fp-signature",
+    "request-signature",
+    "signature",
+    "fynd-platform",
+    "gofynd",
+    "fdkaxios"
+  ],
   "license": "ISC",
   "dependencies": {
     "crypto-js": "^4.1.1",

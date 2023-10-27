@@ -31,7 +31,7 @@ import { sign } from "@gofynd/fp-signature";
 ### For Browser
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@gofynd/fp-signature"></script>
+<script src="https://cdn.jsdelivr.net/npm/@gofynd/fp-signature@{version}"></script>
 <script>
     // FP-Signature library will be attached to the global window object
     FPSignature.sign();
