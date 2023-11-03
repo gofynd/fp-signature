@@ -1,0 +1,12 @@
+name: Run testcases on Merge
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  run-testcases:
+    uses: ./.github/workflows/run_testcases.yml
+
