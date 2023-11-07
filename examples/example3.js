@@ -25,3 +25,11 @@ const res = axios.get("http://api.fynd.com/service/application/configuration/v1.
     "x-currency-code": "INR"
   }
 });
+
+// To get path string with query parameters
+const host = "http://api.fynd.com";
+const path = "/service/application/configuration/v1.0/application";
+const url = new URL(host + path);
+url.searchParams.set("x-fp-signature", signature["x-fp-signature"])
+url.searchParams.set("x-fp-date", signature["x-fp-date"])
+console.log(url.href)
