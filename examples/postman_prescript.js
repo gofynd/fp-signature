@@ -1,4 +1,4 @@
-const version = '1.0.0';
+const version = 'latest';
 
 const FP_SIGNATURE_PACKAGE = "fp_signature_package";
 const FP_SIGNATURE_VERSION = "fp_signature_version";
