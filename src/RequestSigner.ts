@@ -252,6 +252,8 @@ export default class RequestSigner {
 
     if (queryIx >= 0) {
       query = querystring.parse(path.slice(queryIx + 1));
+      delete query["x-fp-signature"]
+      delete query["X-Fp-Signature"]
       path = path.slice(0, queryIx);
     }
     path = path
