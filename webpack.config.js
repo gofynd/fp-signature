@@ -10,7 +10,8 @@ module.exports = {
       type: "umd",
       name: 'FPSignature',
       umdNamedDefine: true
-    }
+    },
+    globalObject: 'typeof self !== "undefined" ? self : this',
   },
   resolve: {
     extensions: [".ts", ".js"], // Extensions to resolve during module resolution
