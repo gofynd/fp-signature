@@ -11,7 +11,7 @@ const requestToSign = {
   },
 };
 
-const {signature} = sign(requestToSign);
+const signature = sign(requestToSign);
 
 const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
   headers: {

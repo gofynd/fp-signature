@@ -38,6 +38,13 @@ import { sign } from "@gofynd/fp-signature";
 </script>
 ```
 
+### In Postman Prescript
+
+To use FP-Signature in Postman as a pre-script, include the [postman_prescript.js](examples/postman_prescript.js) file in the pre-script section of your Postman collection. 
+
+Change the FP-Signature package version within the pre-script according to your requirements.
+
+
 ## Functionality
 
 ### `sign` function
