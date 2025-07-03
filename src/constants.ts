@@ -8,4 +8,4 @@ export const HEADERS_TO_IGNORE : Record<string, boolean> = {
   range: true,
 };
 
-export const HEADERS_TO_INCLUDE: string[] = ["x-fp-.*", "host", "x-user-data"];
+export const HEADERS_TO_INCLUDE: string[] = ["x-fp-.*", "host"];

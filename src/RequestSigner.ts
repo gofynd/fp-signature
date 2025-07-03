@@ -8,6 +8,8 @@ type RequestParamInternal = RequestParam & {
     signQuery?: boolean;
 }
 
+let ALL_HEADERS_TO_INCLUDE = [...HEADERS_TO_INCLUDE]
+
 export default class RequestSigner { 
 
   secret: string;
@@ -15,14 +17,17 @@ export default class RequestSigner {
   parsedPath: ParsedPath;
   datetime: string;
 
-  constructor(request: RequestParam, secret?: string) {
-
+  constructor(request: RequestParam, secret?: string, headersToInclude?: string[]) {
     if(!secret){
       throw new Error("Signature secrete cannot be null, pass secret parameter in constructor.");
+    }
+    if(headersToInclude && !Array.isArray(headersToInclude)){
+      throw new Error("Headers to include must be an array");
     }
 
     this.secret = secret;
     this.request = request;
+    ALL_HEADERS_TO_INCLUDE = [...ALL_HEADERS_TO_INCLUDE, ...(headersToInclude || [])];
 
     let headers = (this.request.headers = this.request.headers || {});
 
@@ -205,9 +210,9 @@ export default class RequestSigner {
         let notInIgnoreHeader = HEADERS_TO_IGNORE[key.toLowerCase()] == null;
         if (notInIgnoreHeader) {
           let foundMatch = false;
-          for (let t in HEADERS_TO_INCLUDE) {
+          for (let t in ALL_HEADERS_TO_INCLUDE) {
             foundMatch =
-              foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], "ig").test(key);
+              foundMatch || new RegExp(ALL_HEADERS_TO_INCLUDE[t], "ig").test(key);
           }
           return foundMatch;
         } else {
@@ -232,9 +237,9 @@ export default class RequestSigner {
         let notInIgnoreHeader = HEADERS_TO_IGNORE[key.toLowerCase()] == null;
         if (notInIgnoreHeader) {
           let foundMatch = false;
-          for (let t in HEADERS_TO_INCLUDE) {
+          for (let t in ALL_HEADERS_TO_INCLUDE) {
             foundMatch =
-              foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], "ig").test(key);
+              foundMatch || new RegExp(ALL_HEADERS_TO_INCLUDE[t], "ig").test(key);
           }
           return foundMatch;
         } else {
