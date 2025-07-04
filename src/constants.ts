@@ -6,6 +6,7 @@ export const HEADERS_TO_IGNORE : Record<string, boolean> = {
   expect: true,
   "presigned-expires": true,
   range: true,
+  "x-fp-signature": true,
 };
 
 export const HEADERS_TO_INCLUDE: string[] = ["x-fp-.*", "host"];
