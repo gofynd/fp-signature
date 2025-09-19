@@ -11,13 +11,12 @@ const requestToSign = {
   },
 };
 
-const signature = sign(requestToSign);
+const signature = sign(requestToSign, { secret: 'your-secret-key' });
 
 const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
   headers: {
     Authorization: "Bearer <authorizationToken>",
     "x-currency-code": "INR",
-    "x-fp-signature": signature["x-fp-signature"],
-    "x-fp-date": signature["x-fp-date"]
+    "x-fp-signature": signature
   }
 });

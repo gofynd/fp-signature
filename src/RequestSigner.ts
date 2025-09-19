@@ -110,9 +110,7 @@ export default class RequestSigner {
       this.prepareRequest();
     }
     this.request.headers["x-fp-signature"] = this.signature();
-    return {
-      'x-fp-signature': this.request.headers['x-fp-signature']
-    }
+    return this.request.headers['x-fp-signature'];
   }
 
   private getDateTime() {

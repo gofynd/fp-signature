@@ -19,7 +19,7 @@ describe("Integration Test - Universal Sign Method (x-fp-date auto-generated)", 
 
         const result = sign(request, {secret: '1234567'});
 
-        expect(result["x-fp-signature"]).toEqual(
+        expect(result).toEqual(
             "v1.1:e922d50be2a309cc7a3580a1f60cf19d6f82f2a4c5d1a52441a082e7500a2a61"
         );
     });
@@ -38,7 +38,7 @@ describe("Integration Test - Universal Sign Method (x-fp-date auto-generated)", 
             secret: '1234567',
         });
 
-        expect(result["x-fp-signature"]).toEqual(
+        expect(result).toEqual(
             "v1.1:38f6892758a50510d9cacbf70b5da73fa09d178104034544fc5587a113c80f9c"
         );
     });
@@ -58,7 +58,7 @@ describe("Integration Test - Universal Sign Method (x-fp-date auto-generated)", 
             secret: '1234567',
         });
         
-        expect(result["x-fp-signature"]).toEqual(
+        expect(result).toEqual(
             "v1.1:8611d45b8aa82bd99188f2a3d77f053fda42a84427d8918cd9b316e04761b22d"
         );
     });
@@ -90,7 +90,7 @@ describe("Integration Test - Universal Sign Method (x-fp-date auto-generated)", 
 
         const result = sign(request, {secret: '1234567'});
 
-        expect(result["x-fp-signature"]).toEqual(
+        expect(result).toEqual(
             "v1.1:97b6907351dba0660dc405c8040a4de750d3663c8dbc5cb510cbd4f62a3524ed"
         );
     });
@@ -115,9 +115,9 @@ describe("Integration Test - Universal Sign Method (x-fp-date auto-generated)", 
 
         // Verify that the signature includes all provided headers
         // (The exact signature will depend on all headers being included)
-        expect(result["x-fp-signature"]).toBeDefined();
-        expect(typeof result["x-fp-signature"]).toBe("string");
-        expect(result["x-fp-signature"]).toMatch(/^v1\.1:[a-f0-9]{64}$/);
+        expect(result).toBeDefined();
+        expect(typeof result).toBe("string");
+        expect(result).toMatch(/^v1\.1:[a-f0-9]{64}$/);
     });
 
     it("should automatically generate x-fp-date when not provided (truly universal approach)", () => {
@@ -133,8 +133,8 @@ describe("Integration Test - Universal Sign Method (x-fp-date auto-generated)", 
         const result = sign(request, { secret: '1234567' });
 
         // Should not throw an error and should generate a valid signature
-        expect(result["x-fp-signature"]).toBeDefined();
-        expect(typeof result["x-fp-signature"]).toBe("string");
-        expect(result["x-fp-signature"]).toMatch(/^v1\.1:[a-f0-9]{64}$/);
+        expect(result).toBeDefined();
+        expect(typeof result).toBe("string");
+        expect(result).toMatch(/^v1\.1:[a-f0-9]{64}$/);
     });
 });

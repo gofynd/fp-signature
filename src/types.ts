@@ -22,6 +22,4 @@ export type SigningOptions = {
     secret?: string;
 }
 
-export type Signature = {
-    "x-fp-signature": string;
-}
+export type Signature = string;

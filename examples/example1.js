@@ -47,7 +47,8 @@ function signatureExample(config) {
         }
     }
 
-    // Remove all the default Axios headers
+    // Client-side header filtering: Remove default Axios headers that shouldn't be signed
+    // The library now signs ALL headers provided, so clients must filter appropriately
     const {
         common,
         delete: _delete, // 'delete' is a reserved word
@@ -67,13 +68,11 @@ function signatureExample(config) {
         headers: headersToSign,
     };
 
-    const result = sign(signingOptions);
+    const signature = sign(signingOptions, { secret: 'your-secret-key' });
 
-    console.log(result["x-fp-date"]);
-    console.log(result["x-fp-signature"]);
+    console.log(signature);
 
-    config.headers["x-fp-date"] = result["x-fp-date"];
-    config.headers["x-fp-signature"] = result["x-fp-signature"];
+    config.headers["x-fp-signature"] = signature;
 
     return config;
 }

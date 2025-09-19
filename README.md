@@ -51,9 +51,9 @@ Change the FP-Signature package version within the pre-script according to your 
 
 The `sign` function is used to generate a signature. It takes two parameters: `request` and `options`.
 
-It will return `Signature` object with `x-fp-date` and `x-fp-signature`.
+It will return the signature string directly.
 
-Include the generated `x-fp-date` and `x-fp-signature` in the request headers or query parameters to sign the request.
+The `x-fp-date` is automatically generated and used internally for signature generation. Include the returned signature string in the `x-fp-signature` header to sign the request.
 
 ```typescript
 type RequestParam = {
@@ -69,15 +69,9 @@ type RequestParam = {
 
 type SigningOptions = {
     secret?: string;
-    signQuery?: boolean;
 }
 
-type Signature = {
-    "x-fp-signature": string;
-    "x-fp-date": string;
-}
-
-function sign(request : RequestParam, options: SigningOptions) : Signature {}
+function sign(request : RequestParam, options: SigningOptions) : string {}
 ```
 
 ### `RequestParam` Object
@@ -146,14 +140,13 @@ const requestToSign = {
   },
 };
 
-const signature = sign(requestToSign);
+const signature = sign(requestToSign, { secret: 'your-secret-key' });
 
 const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
   headers: {
     Authorization: "Bearer <authorizationToken>",
     "x-currency-code": "INR",
-    "x-fp-signature": signature["x-fp-signature"],
-    "x-fp-date": signature["x-fp-date"]
+    "x-fp-signature": signature
   }
 });
 
@@ -179,13 +172,12 @@ const requestToSign = {
 };
 
 const signature = sign(requestToSign, {
-  signQuery: true
+  secret: 'your-secret-key'
 });
 
 const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
   params: {
-    "x-fp-signature": signature["x-fp-signature"],
-    "x-fp-date": signature["x-fp-date"]
+    "x-fp-signature": signature
   },
   headers: {
     Authorization: "Bearer <authorizationToken>",

@@ -1,7 +1,7 @@
 import type { RequestParam, Signature, SigningOptions } from "./types";
 import RequestSigner from "./RequestSigner";
 
-export function sign(request : RequestParam, options?: SigningOptions) : Signature{
+export function sign(request : RequestParam, options?: SigningOptions) : string{
     if (!options?.secret || (typeof options.secret === 'string' && options.secret.length === 0)) {
         throw new Error("Secret is required for signing. Please provide a secret in the options parameter.");
     }
