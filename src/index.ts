@@ -5,13 +5,12 @@ export function sign(request : RequestParam, options?: SigningOptions) : Signatu
     options = {
         signQuery: false,
         secret: '1234567',
-        headers: [],
         ...options
     }
     if(options.signQuery){
-        return new RequestSigner(request, options.secret, options.headers).signQuery();
+        return new RequestSigner(request, options.secret).signQuery();
     }
     else{
-        return new RequestSigner(request, options.secret, options.headers).sign();
+        return new RequestSigner(request, options.secret).sign();
     }
 }

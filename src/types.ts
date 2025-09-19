@@ -21,7 +21,6 @@ export type Dictionary = Record<string, any>
 export type SigningOptions = {
     secret?: string;
     signQuery?: boolean;
-    headers?: string[];
 }
 
 export type Signature = {
