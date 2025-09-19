@@ -1,6 +1,6 @@
 {
   "name": "@gofynd/fp-signature",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Fynd platform's signature logic",
   "main": "./dist/cjs/index.js",
   "module": "./dist/mjs/index.js",
@@ -38,7 +38,6 @@
     "crypto-js": "^4.2.0"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.1.1",
     "@types/jest": "^29.5.3",
     "@types/node": "^20.4.1",
     "concurrently": "^8.2.0",

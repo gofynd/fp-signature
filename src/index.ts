@@ -2,15 +2,12 @@ import type { RequestParam, Signature, SigningOptions } from "./types";
 import RequestSigner from "./RequestSigner";
 
 export function sign(request : RequestParam, options?: SigningOptions) : Signature{
-    options = {
-        signQuery: false,
-        secret: '1234567',
-        ...options
+    if (!options?.secret || (typeof options.secret === 'string' && options.secret.length === 0)) {
+        throw new Error("Secret is required for signing. Please provide a secret in the options parameter.");
     }
-    if(options.signQuery){
-        return new RequestSigner(request, options.secret).signQuery();
+    if (typeof options.secret !== 'string') {
+        throw new Error("Secret must be a non-empty string");
     }
-    else{
-        return new RequestSigner(request, options.secret).sign();
-    }
+    
+    return new RequestSigner(request, options.secret).sign();
 }

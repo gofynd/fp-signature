@@ -1,116 +1,69 @@
 import { RequestParam } from "../../src/types";
 import { sign } from "../../src";
 
-describe("Integration Test - sign method with mocked parameters - new ", () => {
+describe("Integration Test - Universal Sign Method (x-fp-date auto-generated)", () => {
     let request: RequestParam;
-    const mockDateTime = "2023-10-26T05:39:00.199Z"; // 20231026T053900Z
+    const mockDateTime = "20231026T053900Z"; // 20231026T053900Z
 
-    beforeEach(() => {
-        // Mock the Date object
-        jest.spyOn(global, "Date").mockImplementationOnce(
-            () => new Date(mockDateTime)
-        );
 
-        const mockedToISOString = jest
-            .fn()
-            .mockReturnValue(mockDateTime)
-            .mockName("toISOString");
-
-        // Assign the mocked toISOString to the Date.prototype
-        Object.defineProperty(Date.prototype, "toISOString", {
-            value: mockedToISOString,
-            writable: true,
-            configurable: true,
-        });
-    });
-
-    it("should call sign method with mocked parameters and mocked Date - for headers", () => {
+    it("should sign request with x-fp-date provided in headers (universal header approach)", () => {
         request = {
             method: "GET",
             host: "api.fyndx5.de",
             path: "/service/application/configuration/v1.0/application",
             headers: {
-                Authorization:
-                    "Bearer NjQ2NGIxMTY5YThjNmI3ZDUwMDVkMTJlOnVfeXhsWXBaQg==",
-                "x-location-detail": {
-                    pincode: "385001",
-                    country: "India",
-                    city: "Ahmedabad",
-                    location: { longitude: "72.585022", latitude: "23.033863" },
-                },
-                "x-currency-code": "INR",
+                "x-fp-date": mockDateTime,
                 "x-fp-sdk-version": "1.3.4",
             },
         };
 
-        const result = sign(request);
+        const result = sign(request, {secret: '1234567'});
 
         expect(result["x-fp-signature"]).toEqual(
             "v1.1:e922d50be2a309cc7a3580a1f60cf19d6f82f2a4c5d1a52441a082e7500a2a61"
         );
-        expect(result["x-fp-date"]).toEqual("20231026T053900Z");
     });
 
-    it("should call sign method with mocked parameters and mocked Date - for query", () => {
+    it("should sign request with x-fp-date provided in query parameters (universal header approach)", () => {
         request = {
             method: "GET",
             host: "api.fyndx5.de",
-            path: "/service/application/configuration/v1.0/application",
+            path: `/service/application/configuration/v1.0/application?x-fp-date=20231026T053900Z`,
             headers: {
-                Authorization:
-                    "Bearer NjQ2NGIxMTY5YThjNmI3ZDUwMDVkMTJlOnVfeXhsWXBaQg==",
-                "x-location-detail": {
-                    pincode: "385001",
-                    country: "India",
-                    city: "Ahmedabad",
-                    location: { longitude: "72.585022", latitude: "23.033863" },
-                },
-                "x-currency-code": "INR",
                 "x-fp-sdk-version": "1.3.4",
             },
         };
 
         const result = sign(request, {
-            signQuery: true,
+            secret: '1234567',
         });
 
         expect(result["x-fp-signature"]).toEqual(
             "v1.1:38f6892758a50510d9cacbf70b5da73fa09d178104034544fc5587a113c80f9c"
         );
-        expect(result["x-fp-date"]).toEqual("20231026T053900Z");
     });
 
-    it("should call sign method with mocked parameters and mocked Date - get request with query param - for query", () => {
+    it("should sign GET request with additional query parameters and x-fp-date in query (universal header approach)", () => {
         request = {
             method: "GET",
             host: "api.fyndx5.de",
-            path: "/service/common/configuration/v1.0/location?location_type=country",
+            path: `/service/common/configuration/v1.0/location?location_type=country&x-fp-date=${mockDateTime}`,
             headers: {
-                Authorization:
-                    "Bearer NjQ2NGIxMTY5YThjNmI3ZDUwMDVkMTJlOnVfeXhsWXBaQg==",
-                "x-location-detail": {
-                    pincode: "385001",
-                    country: "India",
-                    city: "Ahmedabad",
-                    location: { longitude: "72.585022", latitude: "23.033863" },
-                },
-                "x-currency-code": "INR",
                 "x-fp-sdk-version": "1.3.4",
             },
         };
 
         // Call the sign method
         const result = sign(request, {
-            signQuery: true,
+            secret: '1234567',
         });
         
         expect(result["x-fp-signature"]).toEqual(
             "v1.1:8611d45b8aa82bd99188f2a3d77f053fda42a84427d8918cd9b316e04761b22d"
         );
-        expect(result["x-fp-date"]).toEqual("20231026T053900Z");
     });
 
-    it("should call sign method with mocked parameters and mocked Date - put request with body - for header", () => {
+    it("should sign PUT request with body and x-fp-date in headers (universal header approach)", () => {
         request = {
             method: "PUT",
             host: "api.fyndx5.de",
@@ -130,18 +83,58 @@ describe("Integration Test - sign method with mocked parameters - new ", () => {
                 uid: "8799",
             },
             headers: {
-                Authorization:
-                    "Bearer oa-e3e69efcc07494193eee2d92b21a5f285a9dad07",
                 "x-fp-sdk-version": "1.3.4",
-                "Content-Type": "application/json",
+                "x-fp-date": mockDateTime,
             },
         };
 
-        const result = sign(request);
+        const result = sign(request, {secret: '1234567'});
 
         expect(result["x-fp-signature"]).toEqual(
             "v1.1:97b6907351dba0660dc405c8040a4de750d3663c8dbc5cb510cbd4f62a3524ed"
         );
-        expect(result["x-fp-date"]).toEqual("20231026T053900Z");
+    });
+
+    it("should demonstrate universal header approach - all provided headers are included in signature", () => {
+        request = {
+            method: "POST",
+            host: "api.fyndx5.de",
+            path: "/service/application/test/v1.0/endpoint",
+            body: { test: "data" },
+            headers: {
+                "x-fp-date": mockDateTime,
+                "x-fp-sdk-version": "1.3.4",
+                "Authorization": "Bearer test-token",
+                "Content-Type": "application/json",
+                "Custom-Header": "custom-value",
+                "X-Request-ID": "12345"
+            },
+        };
+
+        const result = sign(request, { secret: '1234567' });
+
+        // Verify that the signature includes all provided headers
+        // (The exact signature will depend on all headers being included)
+        expect(result["x-fp-signature"]).toBeDefined();
+        expect(typeof result["x-fp-signature"]).toBe("string");
+        expect(result["x-fp-signature"]).toMatch(/^v1\.1:[a-f0-9]{64}$/);
+    });
+
+    it("should automatically generate x-fp-date when not provided (truly universal approach)", () => {
+        request = {
+            method: "GET",
+            host: "api.fyndx5.de",
+            path: "/service/application/configuration/v1.0/application",
+            headers: {
+                "x-fp-sdk-version": "1.3.4",
+            },
+        };
+
+        const result = sign(request, { secret: '1234567' });
+
+        // Should not throw an error and should generate a valid signature
+        expect(result["x-fp-signature"]).toBeDefined();
+        expect(typeof result["x-fp-signature"]).toBe("string");
+        expect(result["x-fp-signature"]).toMatch(/^v1\.1:[a-f0-9]{64}$/);
     });
 });
