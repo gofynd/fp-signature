@@ -1,80 +1,26 @@
+const axios = require("axios").default;
 const { sign } = require("@gofynd/fp-signature")
-const combineURLs = require("axios/lib/helpers/combineURLs");
-const isAbsoluteURL = require("axios/lib/helpers/isAbsoluteURL");
-const querystring = require("query-string");
 
-/**
- * Example: When using as interceptor in axios
- * @param {import("axios").AxiosRequestConfig} config 
- */
-function signatureExample(config) {
-    if (!config.url) {
-        throw new Error(
-            "No URL present in request config, unable to sign request"
-        );
-    }
+// Example: Using FP-Signature with x-fp-date header
+const requestToSign = {
+  method: "GET",
+  host: "api.fynd.com",
+  path: "/service/application/configuration/v1.0/application",
+  headers: {
+    Authorization: "Bearer <authorizationToken>",
+    "x-currency-code": "INR",
+    "x-fp-date": new Date().toISOString().replace(/[:\-]|\.\d{3}/g, "")
+  },
+};
 
-    let url = config.url;
-    if (config.baseURL && !isAbsoluteURL(config.url)) {
-        url = combineURLs(config.baseURL, config.url);
-    }
+const signature = sign(requestToSign, { secret: 'your-secret-key' });
 
-    const { host, pathname, search } = new URL(url);
-    const { data, headers, method, params } = config;
+const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
+  headers: {
+    Authorization: "Bearer <authorizationToken>",
+    "x-currency-code": "INR",
+    "x-fp-signature": signature
+  }
+});
 
-    let querySearchObj = querystring.parse(search);
-    querySearchObj = { ...querySearchObj, ...params };
-    let queryParam = "";
-    if (querySearchObj && Object.keys(querySearchObj).length) {
-        if (querystring.stringify(querySearchObj).trim() !== "") {
-            queryParam = `?${querystring.stringify(querySearchObj)}`;
-        }
-    }
-
-    let transformedData;
-    if (method != "get") {
-        let { transformRequest } = config;
-        if (transformRequest) {
-            if (transformRequest.length) {
-              transformRequest = transformRequest[0];
-            }
-            transformedData = transformRequest(data, headers);
-        }
-        else {
-            throw new Error(
-                "Could not get default transformRequest function from Axios defaults"
-              );
-        }
-    }
-
-    // Client-side header filtering: Remove default Axios headers that shouldn't be signed
-    // The library now signs ALL headers provided, so clients must filter appropriately
-    const {
-        common,
-        delete: _delete, // 'delete' is a reserved word
-        get,
-        head,
-        post,
-        put,
-        patch,
-        ...headersToSign
-    } = headers;
-
-    const signingOptions = {
-        method: method && method.toUpperCase(),
-        host: host,
-        path: pathname + search + queryParam,
-        body: transformedData,
-        headers: headersToSign,
-    };
-
-    const signature = sign(signingOptions, { secret: 'your-secret-key' });
-
-    console.log(signature);
-
-    config.headers["x-fp-signature"] = signature;
-
-    return config;
-}
-
-signatureExample();
+console.log("x-fp-signature:", signature);

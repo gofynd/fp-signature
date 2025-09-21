@@ -89,14 +89,18 @@ export default class RequestSigner {
     let request = this.request;
     let headers = request.headers;
 
-    // Check for x-fp-date in headers first, then in query parameters, or generate one
-    if (headers["x-fp-date"]) {
-      this.datetime = headers["x-fp-date"];
-    } else if (this.parsedPath.query["x-fp-date"]) {
-      this.datetime = this.parsedPath.query["x-fp-date"] as string;
-    } else {
-      // Generate timestamp automatically if not provided
-      this.datetime = this.generateDateTime();
+    // Check for x-fp-date in headers first
+    this.datetime = headers["x-fp-date"] || headers["X-Fp-Date"];
+    
+    // If not found in headers, check query parameters
+    if (!this.datetime && this.parsedPath.query) {
+      const queryDate = this.parsedPath.query["x-fp-date"] || this.parsedPath.query["X-Fp-Date"];
+      this.datetime = Array.isArray(queryDate) ? queryDate[0] : queryDate;
+    }
+
+    // Throw error if no timestamp is provided
+    if (!this.datetime) {
+      throw new Error("x-fp-date timestamp is required. Please provide it in headers or query parameters.");
     }
 
     if (!request.doNotModifyHeaders) {
@@ -117,10 +121,8 @@ export default class RequestSigner {
     return this.datetime;
   }
 
-  private generateDateTime() {
-    const date = new Date();
-    return date.toISOString().replace(/[:\-]|\.\d{3}/g, "");
-  }
+
+
 
   private signature() {
     let strTosign = this.stringToSign();
