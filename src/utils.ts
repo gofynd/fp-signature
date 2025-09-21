@@ -1,22 +1,27 @@
-import sha256 from "crypto-js/sha256";
-import hmacSHA256 from "crypto-js/hmac-sha256";
+import CryptoJS from 'crypto-js';
 
-export function hmac(key: string, string: string, encoding: any) : string {
-    return hmacSHA256(string, key).toString();
+export function hmac(key: string, string: string, encoding: 'hex' | 'base64' = 'hex'): string {
+    const hmac = CryptoJS.HmacSHA256(string, key);
+    return hmac.toString(encoding === 'hex' ? CryptoJS.enc.Hex : CryptoJS.enc.Base64);
 }
 
-export function hash(string: string, encoding: any): string {
-    return sha256(string).toString();
+export function hash(string: string, encoding: 'hex' | 'base64' = 'hex'): string {
+    const hash = CryptoJS.SHA256(string);
+    return hash.toString(encoding === 'hex' ? CryptoJS.enc.Hex : CryptoJS.enc.Base64);
 }
 
-// This function assumes the string has already been percent encoded
-export function encodeRfc3986(urlEncodedString: string) : string {
+// RFC 3986 compliant URL encoding
+export function encodeRfc3986(urlEncodedString: string): string {
     return urlEncodedString.replace(/[!'()*]/g, function (c: string) {
         return "%" + c.charCodeAt(0).toString(16).toUpperCase();
     });
 }
 
-export function encodeRfc3986Full(str: string) : string{
-    return str;
-    // return encodeRfc3986(encodeURIComponent(str));
+export function encodeRfc3986Full(str: string): string {
+    if (typeof str !== 'string') {
+        throw new Error('Input must be a string');
+    }
+    
+    // Properly encode the string according to RFC 3986
+    return encodeRfc3986(encodeURIComponent(str));
 }

@@ -1,12 +1,9 @@
 import querystring from "querystring";
 
 import type { RequestParam, ParsedPath, Dictionary, Signature } from "./types";
-import { HEADERS_TO_IGNORE, HEADERS_TO_INCLUDE } from "./constants"
 import { hmac, hash, encodeRfc3986, encodeRfc3986Full } from "./utils";
 
-type RequestParamInternal = RequestParam & {
-    signQuery?: boolean;
-}
+type RequestParamInternal = RequestParam;
 
 export default class RequestSigner { 
 
@@ -16,15 +13,27 @@ export default class RequestSigner {
   datetime: string;
 
   constructor(request: RequestParam, secret?: string) {
-
+    // Input validation
     if(!secret){
-      throw new Error("Signature secrete cannot be null, pass secret parameter in constructor.");
+      throw new Error("Signature secret cannot be null, pass secret parameter in constructor.");
+    }
+    if(typeof secret !== 'string' || secret.length === 0) {
+      throw new Error("Secret must be a non-empty string");
+    }
+    if(!request || typeof request !== 'object') {
+      throw new Error("Request must be a valid object");
+    }
+    if(!request.method || typeof request.method !== 'string') {
+      throw new Error("Request method is required and must be a string");
     }
 
     this.secret = secret;
     this.request = request;
 
     let headers = (this.request.headers = this.request.headers || {});
+
+    // Validate and sanitize headers
+    this.validateHeaders(headers);
 
     if (!this.request.method && this.request.body) {
       this.request.method = "POST";
@@ -43,70 +52,77 @@ export default class RequestSigner {
     }
   }
 
+  private validateHeaders(headers: any): void {
+    if (!headers || typeof headers !== 'object') {
+      return;
+    }
+
+    for (const [key, value] of Object.entries(headers)) {
+      // Validate header name
+      if (typeof key !== 'string' || key.length === 0) {
+        throw new Error(`Invalid header name: ${key}`);
+      }
+      
+      // Check for potentially dangerous header names
+      if (key.toLowerCase().includes('\r') || key.toLowerCase().includes('\n')) {
+        throw new Error(`Header name contains invalid characters: ${key}`);
+      }
+      
+      // Validate header value
+      if (value !== null && value !== undefined) {
+        if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean' && typeof value !== 'object') {
+          throw new Error(`Header value must be string, number, boolean, or object: ${key}`);
+        }
+        
+        // Convert to string and check for dangerous characters
+        const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        if (stringValue.includes('\r') || stringValue.includes('\n')) {
+          throw new Error(`Header value contains invalid characters: ${key}`);
+        }
+      }
+    }
+  }
+
   private prepareRequest() {
     this.parsePath();
 
     let request = this.request;
     let headers = request.headers;
-    let query;
 
-    if (request.signQuery) {
-      this.parsedPath.query = query = this.parsedPath.query || {};
+    // Check for x-fp-date in headers first
+    this.datetime = headers["x-fp-date"] || headers["X-Fp-Date"];
+    
+    // If not found in headers, check query parameters
+    if (!this.datetime && this.parsedPath.query) {
+      const queryDate = this.parsedPath.query["x-fp-date"] || this.parsedPath.query["X-Fp-Date"];
+      this.datetime = Array.isArray(queryDate) ? queryDate[0] : queryDate;
+    }
 
-      if (query["x-fp-date"]) {
-        this.datetime = query["x-fp-date"] as string;
-      } else {
-        query["x-fp-date"] = this.getDateTime();
-      }
-    } else {
-      if (!request.doNotModifyHeaders) {
-        if (headers["x-fp-date"]) {
-          this.datetime = headers["x-fp-date"] || headers["x-fp-date"];
-        } else {
-          headers["x-fp-date"] = this.getDateTime();
-        }
-      }
+    // Throw error if no timestamp is provided
+    if (!this.datetime) {
+      throw new Error("x-fp-date timestamp is required. Please provide it in headers or query parameters.");
+    }
 
+    if (!request.doNotModifyHeaders) {
       delete headers["x-fp-signature"];
       delete headers["X-Fp-Signature"];
     }
   }
 
   sign() : Signature{
-    this.request.signQuery = false;
     if (!this.parsedPath) {
       this.prepareRequest();
     }
     this.request.headers["x-fp-signature"] = this.signature();
-    return {
-      'x-fp-signature': this.request.headers['x-fp-signature'],
-      'x-fp-date': this.request.headers["x-fp-date"]
-    }
+    return this.request.headers['x-fp-signature'];
   }
-
-  signQuery() : Signature{
-    this.request.signQuery = true;
-    if (!this.parsedPath) {
-      this.prepareRequest();
-    }
-    this.parsedPath.query["x-fp-signature"] = this.signature();
-    this.request.path = this.formatPath();
-    return {
-      'x-fp-signature': this.parsedPath.query['x-fp-signature'],
-      'x-fp-date': this.parsedPath.query["x-fp-date"] as string
-    }
-  }
-  
 
   private getDateTime() {
-    if (!this.datetime) {
-      let headers = this.request.headers;
-      let date = new Date(headers.Date || headers.date || new Date());
-
-      this.datetime = date.toISOString().replace(/[:\-]|\.\d{3}/g, "");
-    }
     return this.datetime;
   }
+
+
+
 
   private signature() {
     let strTosign = this.stringToSign();
@@ -131,7 +147,7 @@ export default class RequestSigner {
     let decodeSlashesInPath = false;
     let firstValOnly = false;
     let bodyHash = hash(this.request.body || "", "hex");
-    if (query) {
+    if (query && Object.keys(query).length > 0) {
       let reducedQuery = Object.keys(query).reduce<Dictionary>(function (obj, key) {
         if (!key) {
           return obj;
@@ -200,20 +216,9 @@ export default class RequestSigner {
     function trimAll(header: any) {
       return header.toString().trim().replace(/\s+/g, " ");
     }
+    
+    // Use ALL headers provided by the client - no filtering!
     return Object.keys(headers)
-      .filter(function (key) {
-        let notInIgnoreHeader = HEADERS_TO_IGNORE[key.toLowerCase()] == null;
-        if (notInIgnoreHeader) {
-          let foundMatch = false;
-          for (let t in HEADERS_TO_INCLUDE) {
-            foundMatch =
-              foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], "ig").test(key);
-          }
-          return foundMatch;
-        } else {
-          return false;
-        }
-      })
       .sort(function (a, b) {
         return a.toLowerCase() < b.toLowerCase() ? -1 : 1;
       })
@@ -224,22 +229,10 @@ export default class RequestSigner {
   }
 
   private signedHeaders() {
+    // Use ALL headers provided by the client - no filtering!
     return Object.keys(this.request.headers)
       .map(function (key) {
         return key.toLowerCase();
-      })
-      .filter(function (key) {
-        let notInIgnoreHeader = HEADERS_TO_IGNORE[key.toLowerCase()] == null;
-        if (notInIgnoreHeader) {
-          let foundMatch = false;
-          for (let t in HEADERS_TO_INCLUDE) {
-            foundMatch =
-              foundMatch || new RegExp(HEADERS_TO_INCLUDE[t], "ig").test(key);
-          }
-          return foundMatch;
-        } else {
-          return false;
-        }
       })
       .sort()
       .join(";");
@@ -269,19 +262,4 @@ export default class RequestSigner {
     };
   }
 
-  private formatPath() {
-    let path = this.parsedPath.path;
-    let query = this.parsedPath.query;
-
-    if (!query) {
-      return path;
-    }
-
-    // Services don't support empty query string keys
-    if (query[""] != null) {
-      delete query[""];
-    }
-
-    return path + "?" + encodeRfc3986(querystring.stringify(query));
-  }
 }

@@ -51,9 +51,11 @@ Change the FP-Signature package version within the pre-script according to your 
 
 The `sign` function is used to generate a signature. It takes two parameters: `request` and `options`.
 
-It will return `Signature` object with `x-fp-date` and `x-fp-signature`.
+It will return the signature string directly.
 
-Include the generated `x-fp-date` and `x-fp-signature` in the request headers or query parameters to sign the request.
+The library generates a signature for your request. Include the returned signature string in the `x-fp-signature` header to sign the request.
+
+> **Note**: The `x-fp-date` timestamp is **required** for signature generation. You must include it in your request headers or query parameters. This timestamp helps prevent replay attacks and is used in the signature generation process. The timestamp should be in ISO 8601 format without colons, dashes, or milliseconds (e.g., `20240101T120000Z`).
 
 ```typescript
 type RequestParam = {
@@ -68,16 +70,10 @@ type RequestParam = {
 };
 
 type SigningOptions = {
-    secret?: string;
-    signQuery?: boolean;
+    secret: string;
 }
 
-type Signature = {
-    "x-fp-signature": string;
-    "x-fp-date": string;
-}
-
-function sign(request : RequestParam, options: SigningOptions) : Signature {}
+function sign(request : RequestParam, options: SigningOptions) : string {}
 ```
 
 ### `RequestParam` Object
@@ -94,13 +90,14 @@ The `RequestParam` object is used to configure the details of the HTTP request t
 
 - **`path`**: *(string, optional)* - The path of the request URL with query parameters(if any).
 
-- **`headers`**: *(object, optional)* - Custom headers for the request. Exclude default headers like common, delete, get, head, post, put, patch.
+- **`headers`**: *(object, optional)* - Custom headers for the request. Exclude default headers like common, delete, get, head, post, put, patch. **Note**: The `x-fp-date` header is required for signature generation.
 
 - **`body`**: *(any, optional)* - The body of the request.
 
 - **`doNotEncodePath`**: *(boolean, optional)* - If true, the path will not be URL encoded.
 
 - **`doNotModifyHeaders`**: *(boolean, optional)* - If true, headers will not be modified during signing.
+
 
 #### Example:
 
@@ -111,23 +108,14 @@ const requestToSign = {
     path: "/service/application/configuration/v1.0/application?queryParam=value",
     headers: {
       Authorization: "Bearer <authorizationToken>",
-      "x-currency-code": "INR"
+      "x-currency-code": "INR",
+      "x-fp-date": new Date().toISOString().replace(/[:\-]|\.\d{3}/g, "")
     },
 };
 ```
 
 
-### Signature Placement
-
-The placement of the signature (`x-fp-signature`) in the request is determined by the `options.signQuery` property:
-
-- If `options.signQuery` is `true`, the `x-fp-signature` will be generated to use in query parameter.
-- If `options.signQuery` is `false`, the `x-fp-signature` will be generated to use in headers.
-
-
 ## Example
-
-### Signature to add in header
 
 ```javascript
 // For Common JS
@@ -140,57 +128,15 @@ const requestToSign = {
   method: "GET",
   host: "api.fynd.com",
   path: "/service/application/configuration/v1.0/application",
-  headers: {
-    Authorization: "Bearer <authorizationToken>",
-    "x-currency-code": "INR"
-  },
-};
-
-const signature = sign(requestToSign);
-
-const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
   headers: {
     Authorization: "Bearer <authorizationToken>",
     "x-currency-code": "INR",
-    "x-fp-signature": signature["x-fp-signature"],
-    "x-fp-date": signature["x-fp-date"]
-  }
-});
-
-```
-
-### Signature to add in query
-
-```javascript
-// For Common JS
-// const {sign} = require("@gofynd/fp-signature")
-
-// For ES Module
-import {sign} from "@gofynd/fp-signature";
-
-const requestToSign = {
-  method: "GET",
-  host: "api.fynd.com",
-  path: "/service/application/configuration/v1.0/application",
-  headers: {
-    Authorization: "Bearer <authorizationToken>",
-    "x-currency-code": "INR"
+    "x-fp-date": new Date().toISOString().replace(/[:\-]|\.\d{3}/g, "")
   },
 };
 
-const signature = sign(requestToSign, {
-  signQuery: true
-});
+const signature = sign(requestToSign, { secret: 'your-secret-key' });
 
-const res = axios.get("http://api.fynd.com/service/application/configuration/v1.0/application", {
-  params: {
-    "x-fp-signature": signature["x-fp-signature"],
-    "x-fp-date": signature["x-fp-date"]
-  },
-  headers: {
-    Authorization: "Bearer <authorizationToken>",
-    "x-currency-code": "INR"
-  }
-});
-
+// Use the signature as needed - add to headers, query params, etc.
+console.log('Generated signature:', signature);
 ```
